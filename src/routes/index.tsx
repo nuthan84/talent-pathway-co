@@ -1,24 +1,44 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { LandingNavbar } from "@/components/landing/navbar";
+import { LandingHero } from "@/components/landing/hero";
+import { LandingCategories } from "@/components/landing/categories";
+import { WhyJoin } from "@/components/landing/why-join";
+import { HowItWorks } from "@/components/landing/how-it-works";
+import { Testimonials } from "@/components/landing/testimonials";
+import { LandingFaq } from "@/components/landing/faq";
+import { DownloadApp } from "@/components/landing/download-app";
+import { LandingFooter } from "@/components/landing/footer";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
+const title = "ProConnect — Become a Verified Service Professional";
+const description =
+  "Join 68,000+ verified home-service professionals. Apply once, get verified in 48 hours and start earning with weekly payouts.";
+
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title },
+      { name: "description", content: description },
+      { property: "og:title", content: title },
+      { property: "og:description", content: description },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="min-h-dvh bg-background">
+      <LandingNavbar />
+      <main>
+        <LandingHero />
+        <LandingCategories />
+        <WhyJoin />
+        <HowItWorks />
+        <Testimonials />
+        <LandingFaq />
+        <DownloadApp />
+      </main>
+      <LandingFooter />
     </div>
   );
 }
