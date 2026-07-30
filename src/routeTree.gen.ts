@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ProviderRouteImport } from './routes/provider'
@@ -18,11 +19,17 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as VerifyOtpRouteImport } from './routes/verify-otp'
 import { Route as ProviderIndexRouteImport } from './routes/provider.index'
 import { Route as ProviderDocumentsRouteImport } from './routes/provider.documents'
+import { Route as ProviderProfileRouteImport } from './routes/provider.profile'
 import { Route as ProviderStatusRouteImport } from './routes/provider.status'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -65,6 +72,11 @@ const ProviderDocumentsRoute = ProviderDocumentsRouteImport.update({
   path: '/documents',
   getParentRoute: () => ProviderRoute,
 } as any)
+const ProviderProfileRoute = ProviderProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => ProviderRoute,
+} as any)
 const ProviderStatusRoute = ProviderStatusRouteImport.update({
   id: '/status',
   path: '/status',
@@ -73,6 +85,7 @@ const ProviderStatusRoute = ProviderStatusRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/provider': typeof ProviderRouteWithChildren
@@ -80,23 +93,27 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/verify-otp': typeof VerifyOtpRoute
   '/provider/documents': typeof ProviderDocumentsRoute
+  '/provider/profile': typeof ProviderProfileRoute
   '/provider/status': typeof ProviderStatusRoute
   '/provider/': typeof ProviderIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/verify-otp': typeof VerifyOtpRoute
   '/provider/documents': typeof ProviderDocumentsRoute
+  '/provider/profile': typeof ProviderProfileRoute
   '/provider/status': typeof ProviderStatusRoute
   '/provider': typeof ProviderIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/provider': typeof ProviderRouteWithChildren
@@ -104,6 +121,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/verify-otp': typeof VerifyOtpRoute
   '/provider/documents': typeof ProviderDocumentsRoute
+  '/provider/profile': typeof ProviderProfileRoute
   '/provider/status': typeof ProviderStatusRoute
   '/provider/': typeof ProviderIndexRoute
 }
@@ -111,6 +129,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/forgot-password'
     | '/login'
     | '/provider'
@@ -118,22 +137,26 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/verify-otp'
     | '/provider/documents'
+    | '/provider/profile'
     | '/provider/status'
     | '/provider/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/forgot-password'
     | '/login'
     | '/register'
     | '/reset-password'
     | '/verify-otp'
     | '/provider/documents'
+    | '/provider/profile'
     | '/provider/status'
     | '/provider'
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/forgot-password'
     | '/login'
     | '/provider'
@@ -141,12 +164,14 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/verify-otp'
     | '/provider/documents'
+    | '/provider/profile'
     | '/provider/status'
     | '/provider/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   ProviderRoute: typeof ProviderRouteWithChildren
@@ -162,6 +187,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -220,6 +252,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProviderDocumentsRouteImport
       parentRoute: typeof ProviderRoute
     }
+    '/provider/profile': {
+      id: '/provider/profile'
+      path: '/profile'
+      fullPath: '/provider/profile'
+      preLoaderRoute: typeof ProviderProfileRouteImport
+      parentRoute: typeof ProviderRoute
+    }
     '/provider/status': {
       id: '/provider/status'
       path: '/status'
@@ -232,12 +271,14 @@ declare module '@tanstack/react-router' {
 
 interface ProviderRouteChildren {
   ProviderDocumentsRoute: typeof ProviderDocumentsRoute
+  ProviderProfileRoute: typeof ProviderProfileRoute
   ProviderStatusRoute: typeof ProviderStatusRoute
   ProviderIndexRoute: typeof ProviderIndexRoute
 }
 
 const ProviderRouteChildren: ProviderRouteChildren = {
   ProviderDocumentsRoute: ProviderDocumentsRoute,
+  ProviderProfileRoute: ProviderProfileRoute,
   ProviderStatusRoute: ProviderStatusRoute,
   ProviderIndexRoute: ProviderIndexRoute,
 }
@@ -248,6 +289,7 @@ const ProviderRouteWithChildren = ProviderRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   ProviderRoute: ProviderRouteWithChildren,
