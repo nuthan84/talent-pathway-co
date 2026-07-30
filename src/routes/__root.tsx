@@ -87,11 +87,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "ProConnect — Service Provider Onboarding Portal" },
       {
         property: "og:description",
-        content: "Onboard as a verified service professional with ProConnect.",
+        content: "Join ProConnect as a verified service professional. Onboard, upload documents and track your application in one premium portal.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "ProConnect — Service Provider Onboarding Portal" },
+      { name: "twitter:description", content: "Join ProConnect as a verified service professional. Onboard, upload documents and track your application in one premium portal." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/206c3c65-5b12-4720-89f5-a21dc42735dc/id-preview-e6d9d450--30864c7f-8ea6-40c6-9ad7-114596eb906a.lovable.app-1785381655944.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/206c3c65-5b12-4720-89f5-a21dc42735dc/id-preview-e6d9d450--30864c7f-8ea6-40c6-9ad7-114596eb906a.lovable.app-1785381655944.png" },
     ],
     links: [
       {
