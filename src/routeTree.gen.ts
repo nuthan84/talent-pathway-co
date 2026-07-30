@@ -17,6 +17,9 @@ import { Route as ProviderRouteImport } from './routes/provider'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as VerifyOtpRouteImport } from './routes/verify-otp'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminApplicationsRouteImport } from './routes/admin.applications'
+import { Route as AdminProvidersRouteImport } from './routes/admin.providers'
 import { Route as ProviderIndexRouteImport } from './routes/provider.index'
 import { Route as ProviderDocumentsRouteImport } from './routes/provider.documents'
 import { Route as ProviderProfileRouteImport } from './routes/provider.profile'
@@ -62,6 +65,21 @@ const VerifyOtpRoute = VerifyOtpRouteImport.update({
   path: '/verify-otp',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminApplicationsRoute = AdminApplicationsRouteImport.update({
+  id: '/applications',
+  path: '/applications',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminProvidersRoute = AdminProvidersRouteImport.update({
+  id: '/providers',
+  path: '/providers',
+  getParentRoute: () => AdminRoute,
+} as any)
 const ProviderIndexRoute = ProviderIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -85,44 +103,52 @@ const ProviderStatusRoute = ProviderStatusRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/provider': typeof ProviderRouteWithChildren
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/verify-otp': typeof VerifyOtpRoute
+  '/admin/applications': typeof AdminApplicationsRoute
+  '/admin/providers': typeof AdminProvidersRoute
   '/provider/documents': typeof ProviderDocumentsRoute
   '/provider/profile': typeof ProviderProfileRoute
   '/provider/status': typeof ProviderStatusRoute
+  '/admin/': typeof AdminIndexRoute
   '/provider/': typeof ProviderIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/verify-otp': typeof VerifyOtpRoute
+  '/admin/applications': typeof AdminApplicationsRoute
+  '/admin/providers': typeof AdminProvidersRoute
   '/provider/documents': typeof ProviderDocumentsRoute
   '/provider/profile': typeof ProviderProfileRoute
   '/provider/status': typeof ProviderStatusRoute
+  '/admin': typeof AdminIndexRoute
   '/provider': typeof ProviderIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/provider': typeof ProviderRouteWithChildren
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/verify-otp': typeof VerifyOtpRoute
+  '/admin/applications': typeof AdminApplicationsRoute
+  '/admin/providers': typeof AdminProvidersRoute
   '/provider/documents': typeof ProviderDocumentsRoute
   '/provider/profile': typeof ProviderProfileRoute
   '/provider/status': typeof ProviderStatusRoute
+  '/admin/': typeof AdminIndexRoute
   '/provider/': typeof ProviderIndexRoute
 }
 export interface FileRouteTypes {
@@ -136,22 +162,27 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/verify-otp'
+    | '/admin/applications'
+    | '/admin/providers'
     | '/provider/documents'
     | '/provider/profile'
     | '/provider/status'
+    | '/admin/'
     | '/provider/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/admin'
     | '/forgot-password'
     | '/login'
     | '/register'
     | '/reset-password'
     | '/verify-otp'
+    | '/admin/applications'
+    | '/admin/providers'
     | '/provider/documents'
     | '/provider/profile'
     | '/provider/status'
+    | '/admin'
     | '/provider'
   id:
     | '__root__'
@@ -163,15 +194,18 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/verify-otp'
+    | '/admin/applications'
+    | '/admin/providers'
     | '/provider/documents'
     | '/provider/profile'
     | '/provider/status'
+    | '/admin/'
     | '/provider/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   ProviderRoute: typeof ProviderRouteWithChildren
@@ -238,6 +272,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerifyOtpRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/applications': {
+      id: '/admin/applications'
+      path: '/applications'
+      fullPath: '/admin/applications'
+      preLoaderRoute: typeof AdminApplicationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/providers': {
+      id: '/admin/providers'
+      path: '/providers'
+      fullPath: '/admin/providers'
+      preLoaderRoute: typeof AdminProvidersRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/provider/': {
       id: '/provider/'
       path: '/'
@@ -269,6 +324,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminApplicationsRoute: typeof AdminApplicationsRoute
+  AdminProvidersRoute: typeof AdminProvidersRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminApplicationsRoute: AdminApplicationsRoute,
+  AdminProvidersRoute: AdminProvidersRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 interface ProviderRouteChildren {
   ProviderDocumentsRoute: typeof ProviderDocumentsRoute
   ProviderProfileRoute: typeof ProviderProfileRoute
@@ -289,7 +358,7 @@ const ProviderRouteWithChildren = ProviderRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   ProviderRoute: ProviderRouteWithChildren,
