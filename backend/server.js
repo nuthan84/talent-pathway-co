@@ -5,9 +5,25 @@ require('dotenv').config();
 
 const app = express();
 
+// Allowed Origins for CORS
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://talent-pathway-co.vercel.app',
+  /\.vercel\.app$/ // Allows all Vercel preview URLs
+];
+
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
 app.use(express.json());
+
+// Root Endpoint
+app.get('/', (req, res) => {
+  res.send('Talent Pathway Backend API is running!');
+});
 
 // MongoDB Connection
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/talent_pathway';
