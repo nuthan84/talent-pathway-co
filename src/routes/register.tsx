@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { serviceCategories } from "@/utils/data";
+import { api, ApiError, setToken } from "@/lib/api";
 
 const title = "Register as a Professional — ProConnect";
 const description =
@@ -34,6 +35,7 @@ export const Route = createFileRoute("/register")({
 
 function RegisterPage() {
   const [loading, setLoading] = useState(false);
+  const [category, setCategory] = useState("");
   const navigate = useNavigate();
 
   return (
@@ -51,24 +53,43 @@ function RegisterPage() {
     >
       <form
         className="space-y-5"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
+          const form = e.currentTarget;
+          const firstName = (form.elements.namedItem("firstName") as HTMLInputElement).value;
+          const lastName = (form.elements.namedItem("lastName") as HTMLInputElement).value;
+          const email = (form.elements.namedItem("regEmail") as HTMLInputElement).value;
+          const phone = (form.elements.namedItem("regPhone") as HTMLInputElement).value;
+          const password = (form.elements.namedItem("regPassword") as HTMLInputElement).value;
+
           setLoading(true);
-          setTimeout(() => {
+          try {
+            const { token } = await api.register({
+              name: `${firstName} ${lastName}`.trim(),
+              email,
+              phone: `+91${phone}`,
+              password,
+              category,
+            });
+            setToken(token);
+            toast.success("Account created", { description: "Welcome to ProConnect." });
+            navigate({ to: "/provider" });
+          } catch (err) {
+            const message = err instanceof ApiError ? err.message : "Something went wrong. Please try again.";
+            toast.error("Registration failed", { description: message });
+          } finally {
             setLoading(false);
-            toast.success("Account created", { description: "Verify the OTP sent to your phone." });
-            navigate({ to: "/verify-otp" });
-          }, 700);
+          }
         }}
       >
         <div className="grid gap-5 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="firstName">First name</Label>
-            <Input id="firstName" required className="h-12 rounded-xl" placeholder="Ramesh" />
+            <Input id="firstName" name="firstName" required className="h-12 rounded-xl" placeholder="Ramesh" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="lastName">Last name</Label>
-            <Input id="lastName" required className="h-12 rounded-xl" placeholder="Kulkarni" />
+            <Input id="lastName" name="lastName" required className="h-12 rounded-xl" placeholder="Kulkarni" />
           </div>
         </div>
 
@@ -76,6 +97,7 @@ function RegisterPage() {
           <Label htmlFor="regEmail">Email address</Label>
           <Input
             id="regEmail"
+            name="regEmail"
             type="email"
             required
             className="h-12 rounded-xl"
@@ -91,6 +113,7 @@ function RegisterPage() {
             </span>
             <Input
               id="regPhone"
+              name="regPhone"
               type="tel"
               required
               inputMode="numeric"
@@ -102,13 +125,13 @@ function RegisterPage() {
 
         <div className="space-y-2">
           <Label htmlFor="regCategory">Primary service category</Label>
-          <Select>
+          <Select value={category} onValueChange={setCategory} required>
             <SelectTrigger id="regCategory" className="h-12 w-full rounded-xl">
               <SelectValue placeholder="Select a category" />
             </SelectTrigger>
             <SelectContent>
               {serviceCategories.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
+                <SelectItem key={c.id} value={c.name}>
                   {c.name}
                 </SelectItem>
               ))}
@@ -120,11 +143,13 @@ function RegisterPage() {
           <Label htmlFor="regPassword">Create password</Label>
           <Input
             id="regPassword"
+            name="regPassword"
             type="password"
             required
+            minLength={6}
             autoComplete="new-password"
             className="h-12 rounded-xl"
-            placeholder="Minimum 8 characters"
+            placeholder="Minimum 6 characters"
           />
         </div>
 
