@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "motion/react";
 import {
@@ -31,8 +31,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { api, type AuthUser } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import { providerDocuments, providers, serviceCategories } from "@/utils/data";
+import { providerDocuments, serviceCategories } from "@/utils/data";
 import mapImage from "@/assets/map-placeholder.jpg";
 
 const title = "Complete Your Profile — ProConnect Partner";
@@ -75,16 +76,63 @@ const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 function ProfileWizard() {
   const [step, setStep] = useState(1);
   const [radius, setRadius] = useState([12]);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [profile, setProfile] = useState<Record<string, unknown> | null>(null);
   const navigate = useNavigate();
-  const me = providers[0];
   const progress = Math.round((step / steps.length) * 100);
 
-  const next = () => {
+  useEffect(() => {
+    let ignore = false;
+
+    async function load() {
+      try {
+        const [meResponse, profileResponse] = await Promise.all([api.me(), api.getProviderProfile()]);
+        if (ignore) return;
+        setUser(meResponse.user);
+        setProfile(profileResponse as Record<string, unknown>);
+      } catch {
+        if (!ignore) {
+          setUser(null);
+          setProfile(null);
+        }
+      }
+    }
+
+    load();
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  const me = {
+    name: user?.name ?? "Professional",
+    email: user?.email ?? "",
+    phone: user?.phone ?? "",
+    category: String((profile?.category as string | undefined) ?? "Service Provider"),
+    city: String((profile?.city as string | undefined) ?? "Your city"),
+    experience: Number(profile?.experienceYears ?? 0),
+    bio: String((profile?.bio as string | undefined) ?? ""),
+    languages: Array.isArray(profile?.languages)
+      ? (profile.languages as string[])
+      : [],
+  };
+  const documentsUploadedCount = Array.isArray(profile?.documents)
+    ? (profile.documents as Array<Record<string, unknown>>).length
+    : 0;
+
+  const next = async () => {
     if (step === steps.length) {
-      toast.success("Application submitted", {
-        description: "We'll review your profile within 48 hours.",
-      });
-      navigate({ to: "/provider/status" });
+      try {
+        await api.submitApplication();
+        toast.success("Application submitted", {
+          description: "We'll review your profile within 48 hours.",
+        });
+        navigate({ to: "/provider/status" });
+      } catch {
+        toast.error("Could not submit application", {
+          description: "Please try again in a moment.",
+        });
+      }
       return;
     }
     setStep((s) => s + 1);
@@ -146,7 +194,7 @@ function ProfileWizard() {
           <section className="surface-card p-6 lg:col-span-3 sm:p-8">
             <AnimatePresence mode="wait">
               <motion.div
-                key={step}
+                key={`${step}-${user?._id ?? "guest"}-${profile?._id ?? "guest"}`}
                 initial={{ opacity: 0, x: 24 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -24 }}
@@ -156,8 +204,8 @@ function ProfileWizard() {
                   <div className="space-y-5">
                     <StepTitle title="Personal details" hint="As printed on your government ID." />
                     <div className="grid gap-5 sm:grid-cols-2">
-                      <Field id="wFirst" label="First name" defaultValue="Ramesh" />
-                      <Field id="wLast" label="Last name" defaultValue="Kulkarni" />
+                      <Field id="wFirst" label="First name" defaultValue={me.name.split(" ")[0] ?? me.name} />
+                      <Field id="wLast" label="Last name" defaultValue={me.name.split(" ").slice(1).join(" ") || ""} />
                       <Field id="wDob" label="Date of birth" type="date" defaultValue="1989-04-12" />
                       <div className="space-y-2">
                         <Label htmlFor="wGender">Gender</Label>
@@ -218,8 +266,8 @@ function ProfileWizard() {
                   <div className="space-y-5">
                     <StepTitle title="Experience & skills" hint="Helps us match you to better jobs." />
                     <div className="grid gap-5 sm:grid-cols-2">
-                      <Field id="wYears" label="Years of experience" type="number" defaultValue="9" />
-                      <Field id="wLangs" label="Languages spoken" defaultValue="Telugu, Hindi, English" />
+                      <Field id="wYears" label="Years of experience" type="number" defaultValue={String(me.experience || 0)} />
+                      <Field id="wLangs" label="Languages spoken" defaultValue={me.languages.join(", ") || "English"} />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="wBio">Short bio</Label>
@@ -325,8 +373,8 @@ function ProfileWizard() {
                         ["Category", me.category],
                         ["Experience", `${me.experience} years`],
                         ["Service area", `${me.city} · ${radius[0]} km radius`],
-                        ["Documents", "4 uploaded, 2 pending"],
-                        ["Payout account", "HDFC •••• 9921"],
+                        ["Documents", `${documentsUploadedCount} uploaded`],
+                        ["Payout account", "Bank details on file"],
                       ].map(([k, v]) => (
                         <div key={k} className="rounded-2xl bg-surface px-4 py-3">
                           <dt className="text-xs text-muted-foreground">{k}</dt>

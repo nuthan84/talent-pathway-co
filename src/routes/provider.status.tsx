@@ -22,36 +22,104 @@ export const Route = createFileRoute("/provider/status")({
   component: StatusPage,
 });
 
-const entries: TimelineEntry[] = [
-  {
-    title: "Application submitted",
-    description: "Received and queued for document checks.",
-    date: "24 Jul 2026, 10:42 AM",
-    state: "done",
-  },
-  {
-    title: "Identity documents verified",
-    description: "Aadhaar and PAN matched government records.",
-    date: "26 Jul 2026, 01:08 PM",
-    state: "done",
-  },
-  {
-    title: "Police verification rejected",
-    description: "Certificate expired. Upload one issued after Aug 2025 to continue.",
-    date: "27 Jul 2026, 06:31 PM",
-    state: "failed",
-  },
-  {
-    title: "Background check",
-    description: "Runs automatically once the new certificate is verified.",
-    state: "current",
-  },
-  {
-    title: "Approved & activated",
-    description: "Partner app access, training slot and first job allocation.",
-    state: "upcoming",
-  },
-];
+function makeEntries(status: string, createdAt?: string): TimelineEntry[] {
+  const baseDate = createdAt ? new Date(createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "Today";
+
+  const states: Record<string, TimelineEntry[]> = {
+    draft: [
+      {
+        title: "Application started",
+        description: "Your profile wizard is in progress.",
+        date: baseDate,
+        state: "current",
+      },
+      {
+        title: "Documents pending",
+        description: "Upload your Aadhaar, PAN and profile photo to move ahead.",
+        state: "upcoming",
+      },
+    ],
+    submitted: [
+      {
+        title: "Application submitted",
+        description: "Received and queued for document checks.",
+        date: baseDate,
+        state: "done",
+      },
+      {
+        title: "Documents under review",
+        description: "A specialist is reviewing the submitted profile and files.",
+        state: "current",
+      },
+    ],
+    under_review: [
+      {
+        title: "Application submitted",
+        description: "Received and queued for document checks.",
+        date: baseDate,
+        state: "done",
+      },
+      {
+        title: "Under review",
+        description: "Your onboarding profile is presently being reviewed by the ProConnect team.",
+        state: "current",
+      },
+    ],
+    documents_verified: [
+      {
+        title: "Application submitted",
+        description: "Received and queued for document checks.",
+        date: baseDate,
+        state: "done",
+      },
+      {
+        title: "Documents verified",
+        description: "Identity and document checks cleared successfully.",
+        date: baseDate,
+        state: "done",
+      },
+      {
+        title: "Background check",
+        description: "Your final onboarding review is being completed.",
+        state: "current",
+      },
+    ],
+    approved: [
+      {
+        title: "Application submitted",
+        description: "Received and queued for document checks.",
+        date: baseDate,
+        state: "done",
+      },
+      {
+        title: "Documents verified",
+        description: "All onboarding checks completed successfully.",
+        date: baseDate,
+        state: "done",
+      },
+      {
+        title: "Approved & activated",
+        description: "Partner app access, training slot and first job allocation.",
+        state: "done",
+      },
+    ],
+    rejected: [
+      {
+        title: "Application submitted",
+        description: "Received and queued for document checks.",
+        date: baseDate,
+        state: "done",
+      },
+      {
+        title: "Review rejected",
+        description: "The application requires changes before it can proceed.",
+        state: "failed",
+      },
+    ],
+  };
+
+  return states[status] ?? states.draft;
+}
 
 function StatusPage() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -82,6 +150,7 @@ function StatusPage() {
 
   const status = String((profile?.status as string | undefined) ?? "draft");
   const applicationId = String((profile?._id as string | undefined) ?? `PRO-${(user?._id ?? "0000").slice(-4)}`);
+  const entries = makeEntries(status, typeof profile?.createdAt === "string" ? profile.createdAt : undefined);
 
   return (
     <PageTransition>
