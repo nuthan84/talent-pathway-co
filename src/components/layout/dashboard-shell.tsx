@@ -12,6 +12,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { clearToken } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -115,7 +116,7 @@ export function DashboardShell({ items, title, subtitle, user, children }: Dashb
             />
             {!collapsed ? "Collapse" : null}
           </Button>
-          <Link to="/login">
+          <Link to="/login" onClick={clearToken}>
             <Button variant="ghost" className="w-full justify-start gap-3 text-destructive hover:text-destructive">
               <LogOut className="size-[18px]" aria-hidden="true" />
               {!collapsed ? "Logout" : null}
@@ -238,7 +239,7 @@ export function DashboardShell({ items, title, subtitle, user, children }: Dashb
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link to="/login" className="text-destructive">
+                  <Link to="/login" className="text-destructive" onClick={clearToken}>
                     Logout
                   </Link>
                 </DropdownMenuItem>
