@@ -1,82 +1,61 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
+
+const connectDB = require('./config/db');
+const authRoutes = require('./routes/authRoutes');
+const providerRoutes = require('./routes/providerRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 
-// Allowed Origins for CORS
+// --- Middleware ---
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
   'https://talent-pathway-co.vercel.app',
-  /\.vercel\.app$/ // Allows all Vercel preview URLs
+  /\.vercel\.app$/, // Allows all Vercel preview URLs
 ];
 
-// Middleware
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true
-}));
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
 
-// Root Endpoint
+// Serve uploaded documents statically. NOTE: ephemeral on Render free tier — see middleware/upload.js.
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// --- Routes ---
 app.get('/', (req, res) => {
   res.send('Talent Pathway Backend API is running!');
 });
 
-// MongoDB Connection
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/talent_pathway';
-mongoose.connect(MONGO_URI)
-  .then(() => console.log('MongoDB Connected Successfully'))
-  .catch(err => console.error('MongoDB Connection Error:', err));
-
-// Provider Schema
-const ProviderSchema = new mongoose.Schema({
-  name: String,
-  email: String,
-  category: String,
-  skills: [String],
-  experienceYears: Number,
-  location: String,
-  status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' },
-  rejectionRemarks: String,
-  createdAt: { type: Date, default: Date.now }
-});
-
-const Provider = mongoose.model('Provider', ProviderSchema);
-
-// API Routes
 app.get('/api/health', (req, res) => {
   res.json({ message: 'Talent Pathway API is running smoothly' });
 });
 
-// Admin: Get all providers
-app.get('/api/admin/providers', async (req, res) => {
-  try {
-    const providers = await Provider.find();
-    res.json(providers);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+app.use('/api/auth', authRoutes);
+app.use('/api/provider', providerRoutes);
+app.use('/api/admin', adminRoutes);
+
+// --- Error handling ---
+// Multer errors (bad file type, too large) land here if not caught upstream.
+app.use((err, req, res, next) => {
+  if (err) {
+    return res.status(400).json({ error: err.message });
   }
+  next();
 });
 
-// Admin: Update provider status
-app.put('/api/admin/providers/:id/status', async (req, res) => {
-  try {
-    const { status, remarks } = req.body;
-    const provider = await Provider.findByIdAndUpdate(
-      req.params.id,
-      { status, rejectionRemarks: remarks },
-      { new: true }
-    );
-    res.json(provider);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+// 404 fallback for unmatched API routes.
+app.use((req, res) => {
+  res.status(404).json({ error: `No route for ${req.method} ${req.originalUrl}` });
 });
 
+// --- Start ---
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
 });
