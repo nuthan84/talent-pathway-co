@@ -1,9 +1,17 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { FileCheck2, FolderUp, LayoutDashboard, UserRound } from "lucide-react";
 import { DashboardShell, type NavItem } from "@/components/layout/dashboard-shell";
 import { providers } from "@/utils/data";
+import { getToken, getTokenRole } from "@/lib/api";
 
 export const Route = createFileRoute("/provider")({
+  // Client-side guard for UX only — real enforcement is server-side in
+  // backend/middleware/auth.js. See the comment on getTokenRole() in src/lib/api.ts.
+  beforeLoad: () => {
+    if (!getToken() || getTokenRole() !== "provider") {
+      throw redirect({ to: "/login" });
+    }
+  },
   component: ProviderLayout,
 });
 
