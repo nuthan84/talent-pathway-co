@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { api, ApiError, setToken } from "@/lib/api";
 
 const title = "Partner Login — ProConnect";
 const description = "Log in to your ProConnect partner account to track your onboarding application.";
@@ -43,24 +44,34 @@ function LoginPage() {
     >
       <form
         className="space-y-5"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
+          const form = e.currentTarget;
+          const email = (form.elements.namedItem("email") as HTMLInputElement).value;
+          const password = (form.elements.namedItem("password") as HTMLInputElement).value;
+
           setLoading(true);
-          setTimeout(() => {
-            setLoading(false);
+          try {
+            const { token, user } = await api.login({ email, password });
+            setToken(token);
             toast.success("Signed in", { description: "Welcome back to ProConnect." });
-            navigate({ to: "/provider" });
-          }, 700);
+            navigate({ to: user.role === "admin" ? "/admin" : "/provider" });
+          } catch (err) {
+            const message = err instanceof ApiError ? err.message : "Something went wrong. Please try again.";
+            toast.error("Login failed", { description: message });
+          } finally {
+            setLoading(false);
+          }
         }}
       >
         <div className="space-y-2">
           <Label htmlFor="email">Email or phone</Label>
           <Input
             id="email"
+            name="email"
             type="text"
             required
             autoComplete="username"
-            defaultValue="ramesh.kulkarni@gmail.com"
             className="h-12 rounded-xl"
           />
         </div>
@@ -78,10 +89,10 @@ function LoginPage() {
           <div className="relative">
             <Input
               id="password"
+              name="password"
               type={show ? "text" : "password"}
               required
               autoComplete="current-password"
-              defaultValue="proconnect"
               className="h-12 rounded-xl pe-11"
             />
             <button
@@ -110,24 +121,9 @@ function LoginPage() {
           {loading ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : null}
           Log in
         </Button>
-
-        <div className="flex items-center gap-3">
-          <span className="h-px flex-1 bg-border" />
-          <span className="text-xs text-muted-foreground">or</span>
-          <span className="h-px flex-1 bg-border" />
-        </div>
-
-        <Link to="/verify-otp">
-          <Button type="button" variant="outline" className="h-12 w-full rounded-xl font-semibold">
-            Continue with OTP
-          </Button>
-        </Link>
-
-        <Link to="/admin">
-          <Button type="button" variant="ghost" className="h-11 w-full rounded-xl text-sm">
-            Sign in as administrator
-          </Button>
-        </Link>
+        <p className="text-center text-xs text-muted-foreground">
+          Admins log in with the same form — you'll land on the right dashboard automatically.
+        </p>
       </form>
     </AuthLayout>
   );
